@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundial 2026 · Dashboard de Resultados</title>
+<meta name="theme-color" content="#0b2c66">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mundial 2026">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root{
+    --bg:#eef3f9; --bg2:#e4ebf5; --card:#ffffff; --card2:#f6f9fd;
+    --line:#d9e2f0; --txt:#10223f; --muted:#5d6e8c; --soft:#2c3e5e;
+    --blue:#1e63d8; --blue2:#2f80ed; --navy:#0b2c66;
+    --green:#0a8f47; --green2:#12a957; --gold:#d99700; --gold2:#f5b400;
+    --red:#e23b4e; --teal:#0aa3a3;
+    --mx:#0a7a40; --mxg:#0e9e54;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1100px 500px at 10% -8%, #dbe7ff 0%, transparent 55%),
+      radial-gradient(900px 480px at 100% 0%, #d6f3e4 0%, transparent 52%),
+      var(--bg);
+    color:var(--txt); min-height:100vh; padding-bottom:60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+  /* HEADER */
+  header{
+    background:linear-gradient(120deg,#0b2c66 0%,#1e63d8 52%,#0a8f47 100%);
+    border-radius:0 0 26px 26px; padding:28px 0 26px; position:relative; overflow:hidden;
+    box-shadow:0 14px 38px rgba(11,44,102,.30);
+  }
+  header::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(600px 220px at 88% -10%, rgba(255,255,255,.28), transparent 60%);}
+  .hd{display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:relative;z-index:2}
+  .ball{font-size:52px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.35))}
+  .htext h1{font-size:34px;font-weight:900;letter-spacing:.5px;line-height:1;color:#fff}
+  .htext .sub{color:#fff;opacity:.97;margin-top:7px;font-size:14px;font-weight:600}
+  .htext .sub2{color:#eaf2ff;opacity:.9;margin-top:3px;font-size:12.5px}
+  .updated{margin-left:auto;text-align:right;background:rgba(255,255,255,.16);
+    padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.32)}
+  .updated .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#eaf2ff;opacity:.92}
+  .updated .val{font-size:15px;font-weight:800;margin-top:2px;color:#fff}
+  .updated .auto{font-size:10.5px;color:#cfeede;margin-top:4px;font-weight:700}
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:-26px;position:relative;z-index:3}
+  .stat{background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:15px 14px;box-shadow:0 8px 22px rgba(16,34,63,.08)}
+  .stat .num{font-size:27px;font-weight:900;line-height:1;color:var(--navy)}
+  .stat .cap{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+  .stat.gold .num{color:var(--gold)} .stat.green .num{color:var(--green)}
+  .stat.blue .num{color:var(--blue)} .stat.teal .num{color:var(--teal)} .stat.red .num{color:var(--red)}
+  /* MX banner */
+  .mxbar{margin-top:18px;background:linear-gradient(100deg,#e7f7ee,#eaf1fb);
+    border:1px solid #bfe6cf;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .mxbar .tag{background:var(--mxg);color:#fff;font-weight:900;padding:5px 12px;border-radius:20px;font-size:12px;letter-spacing:.5px}
+  .mxbar .info{font-size:14px;color:#0a4a2a;font-weight:700}
+  .mxbar .info b{color:var(--navy)}
+  /* TABS */
+  .tabs{display:flex;gap:8px;margin:22px 0 14px;flex-wrap:wrap}
+  .tab{background:var(--card);border:1px solid var(--line);color:var(--soft);
+    padding:10px 20px;border-radius:12px;cursor:pointer;font-weight:800;font-size:14px;transition:.15s}
+  .tab:hover{border-color:var(--blue);color:var(--blue)}
+  .tab.active{background:linear-gradient(120deg,var(--blue),var(--green));color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(30,99,216,.28)}
+  .tab.hoy.active{background:linear-gradient(120deg,#d99700,#f5b400);color:#3a2800}
+  .tab.tri.active{background:linear-gradient(120deg,#0a8f47,#0b2c66);color:#fff;box-shadow:0 8px 18px rgba(10,143,71,.30)}
+  /* FILTERS */
+  .filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .search{flex:1;min-width:220px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;
+    padding:12px 15px;color:var(--txt);font-size:14px}
+  .search:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(30,99,216,.14)}
+  .search::placeholder{color:#9aa8bf}
+  select.fsel{background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--soft);
+    padding:11px 13px;font-size:13.5px;font-weight:700;cursor:pointer}
+  .chip{background:var(--card);border:1px solid var(--line);color:var(--soft);padding:10px 15px;
+    border-radius:20px;cursor:pointer;font-size:13px;font-weight:800;transition:.15s;user-select:none}
+  .chip:hover{border-color:var(--blue);color:var(--blue)}
+  .chip.on{background:linear-gradient(120deg,var(--green),var(--teal));color:#fff;border-color:transparent}
+  .chip.gold.on{background:linear-gradient(120deg,#d99700,#f5b400);color:#3a2800}
+  .hint{font-size:12px;color:var(--muted);margin:0 2px 14px;font-weight:600}
+  /* DAY group */
+  .day{margin:24px 0 8px;display:flex;align-items:center;gap:12px}
+  .day .dot{width:9px;height:9px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(30,99,216,.16)}
+  .day h3{font-size:16px;font-weight:800;color:var(--navy)}
+  .day .ph{font-size:11px;color:var(--muted);background:var(--card);padding:3px 10px;border-radius:10px;border:1px solid var(--line);font-weight:700}
+  .day .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  /* CARDS */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+  .match{background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:15px 16px;position:relative;transition:.15s;overflow:hidden;box-shadow:0 6px 16px rgba(16,34,63,.06)}
+  .match:hover{transform:translateY(-2px);border-color:var(--blue);box-shadow:0 12px 24px rgba(16,34,63,.12)}
+  .match.played{background:linear-gradient(160deg,#f3fbf6,#ffffff)}
+  .match.mx{border-color:#1aa45f;box-shadow:0 0 0 1px #1aa45f, 0 8px 20px rgba(15,174,98,.14)}
+  .match.az{border-color:#e0b53a}
+  .match.mx.az{box-shadow:0 0 0 1px #e0b53a,0 8px 20px rgba(245,181,10,.16)}
+  .ballmark{position:absolute;top:11px;right:12px;opacity:.95;line-height:0}
+  .mrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .team{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+  .team.v{flex-direction:row-reverse;text-align:right}
+  .team .fl{font-size:23px;line-height:1}
+  .team .nm{font-weight:800;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--soft)}
+  .team.win .nm{color:var(--navy)}
+  .score{display:flex;align-items:center;gap:8px;padding:0 6px}
+  .score .v{font-size:24px;font-weight:900;min-width:22px;text-align:center;color:var(--navy)}
+  .score .v.w{color:var(--green)} .score .v.l{color:var(--muted)}
+  .score .dash{color:var(--muted);font-weight:700}
+  .vs{font-size:12px;font-weight:800;color:var(--blue);background:#eaf1fc;padding:5px 9px;border-radius:8px;border:1px solid #cfe0fb}
+  .meta{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+  .badge{font-weight:800;padding:3px 9px;border-radius:8px;font-size:11px}
+  .b-grp{background:#eef2fb;color:var(--blue);border:1px solid #d3e0f7}
+  .b-live{background:#e6f7ee;color:#0a7c41;border:1px solid #bce6cd}
+  .b-prog{background:#fff5da;color:#9a7400;border:1px solid #f0dca0}
+  .b-az{background:#fff3d6;color:#9a7400;border:1px solid #f0d79a}
+  .b-mx{background:#e7f7ee;color:#0a7c41;border:1px solid #bce6cd}
+  .meta .est{display:flex;align-items:center;gap:5px}
+  .empty{text-align:center;color:var(--muted);padding:46px;font-size:15px;background:var(--card);border:1px dashed var(--line);border-radius:16px}
+  /* VIEWS */
+  #posView,#triView,#partidosView{display:none}
+  .grps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .gcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;overflow:hidden;box-shadow:0 6px 16px rgba(16,34,63,.06)}
+  .gcard h4{font-size:14px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--navy)}
+  .gcard h4 .gp{background:linear-gradient(120deg,var(--blue),var(--green));width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:5px 3px;font-weight:800}
+  th.l,td.l{text-align:left}
+  td{padding:7px 3px;border-top:1px solid var(--line);text-align:center;color:var(--soft);font-weight:700}
+  td.pos{color:var(--muted);width:18px}
+  tr.q td.pos{color:var(--green);font-weight:900}
+  td.tm{display:flex;align-items:center;gap:7px;font-weight:800;color:var(--txt)}
+  td.tm .fl{font-size:16px}
+  td.pts{color:var(--navy);font-weight:900}
+  tr.mx td{background:#eafaf1}
+  tr.mx td.tm{color:#0a7c41}
+  .leg{font-size:11px;color:var(--muted);margin:14px 2px 0;display:flex;gap:16px;flex-wrap:wrap}
+  .leg span{display:flex;align-items:center;gap:6px}
+  .leg .d{width:10px;height:10px;border-radius:3px}
+  /* ===== HOY ===== */
+  .hoy-hero{background:linear-gradient(120deg,#0b2c66,#1e63d8 60%,#0aa3a3);border-radius:20px;padding:24px 26px;
+    color:#fff;position:relative;overflow:hidden;box-shadow:0 12px 32px rgba(11,44,102,.28);
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .hoy-hero::after{content:"🏆";position:absolute;right:18px;bottom:-12px;font-size:120px;opacity:.13}
+  .hoy-hero .hl{z-index:2}
+  .hoy-hero .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#cfe6ff;font-weight:800}
+  .hoy-hero .date{font-size:25px;font-weight:900;margin-top:5px;text-transform:capitalize}
+  .hoy-hero .cnt{margin-left:auto;z-index:2;text-align:center;background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:13px 16px;min-width:250px}
+  .hoy-hero .cnt .clbl{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#ffe39b;font-weight:800}
+  .hoy-hero .cnt .rv{font-size:13.5px;font-weight:800;margin:5px 0 8px}
+  .cd{display:flex;gap:7px;justify-content:center}
+  .cd .u{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:6px 9px;min-width:46px}
+  .cd .u b{display:block;font-size:22px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+  .cd .u span{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#dcebff}
+  .hoy-sec{font-size:15px;font-weight:900;color:var(--navy);margin:22px 2px 12px;display:flex;align-items:center;gap:9px}
+  .hoy-sec .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  /* ===== EL TRI ===== */
+  .tri-hero{background:linear-gradient(120deg,#0a8f47 0%,#0b2c66 60%,#7a1224 100%);
+    border-radius:22px;padding:30px 28px;border:0;position:relative;overflow:hidden;
+    box-shadow:0 16px 44px rgba(10,143,71,.30);display:flex;align-items:center;gap:26px;flex-wrap:wrap;color:#fff}
+  .tri-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(520px 220px at 100% 0,rgba(255,210,74,.22),transparent 60%)}
+  .tri-crest{font-size:94px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));z-index:2}
+  .tri-head{z-index:2;flex:1;min-width:240px}
+  .tri-head h2{font-size:31px;font-weight:900;letter-spacing:.5px;line-height:1.05}
+  .tri-head .tri-status{display:inline-block;margin-top:11px;background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.32);padding:7px 14px;border-radius:30px;font-weight:800;font-size:13.5px}
+  .tri-head .tri-sub{color:#e9fff2;font-weight:700;margin-top:11px;font-size:14.5px}
+  .tri-head .celebra{margin-top:14px;background:#f5b400;color:#3a2800;border:0;padding:9px 18px;border-radius:30px;
+    font-weight:900;font-size:13.5px;cursor:pointer;box-shadow:0 6px 16px rgba(245,180,0,.4)}
+  .tri-head .celebra:hover{filter:brightness(1.06)}
+  .tri-count{z-index:2;text-align:center;background:rgba(0,0,0,.26);
+    border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:15px 18px;min-width:230px}
+  .tri-count .clbl{font-size:10.5px;text-transform:uppercase;letter-spacing:1.4px;color:#ffe39b;font-weight:800}
+  .tri-count .rival{font-size:14px;font-weight:800;margin:6px 0 8px}
+  .tri-count .place{font-size:11.5px;color:#dcebff;margin-top:9px}
+  .tri-record{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin:20px 0}
+  .rc{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px 10px;text-align:center;box-shadow:0 6px 16px rgba(16,34,63,.06)}
+  .rc b{font-size:27px;font-weight:900;display:block;line-height:1;color:var(--navy)}
+  .rc span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:800;margin-top:6px;display:block}
+  .rc.w b{color:var(--green)} .rc.d b{color:var(--gold)} .rc.l b{color:var(--red)}
+  .tri-tl-h{font-size:16px;font-weight:900;color:var(--navy);margin:24px 2px 12px;display:flex;align-items:center;gap:9px}
+  .tri-tl-h .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .tline{position:relative;margin-left:8px;padding-left:28px}
+  .tline::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:3px;
+    background:linear-gradient(180deg,#0a8f47,#f5b400,#e23b4e);border-radius:3px}
+  .tev{position:relative;margin-bottom:13px;background:var(--card);
+    border:1px solid var(--line);border-radius:15px;padding:14px 17px;box-shadow:0 6px 16px rgba(16,34,63,.06)}
+  .tev::before{content:"";position:absolute;left:-25px;top:19px;width:14px;height:14px;border-radius:50%;
+    background:var(--muted);border:3px solid var(--bg)}
+  .tev.win::before{background:var(--green)} .tev.draw::before{background:var(--gold)}
+  .tev.loss::before{background:var(--red)} .tev.next::before{background:var(--blue);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(30,99,216,.5)}50%{box-shadow:0 0 0 7px rgba(30,99,216,0)}}
+  .tev .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .tev .mt{font-weight:900;font-size:15.5px;color:var(--navy)}
+  .tev .sc{font-weight:900;font-size:19px}
+  .tev .sc.win{color:var(--green)} .tev .sc.draw{color:var(--gold)} .tev .sc.loss{color:var(--red)}
+  .tev .res{font-size:11px;font-weight:900;padding:3px 9px;border-radius:8px}
+  .res.win{background:#e6f7ee;color:#0a7c41;border:1px solid #bce6cd}
+  .res.draw{background:#fff5da;color:#9a7400;border:1px solid #f0dca0}
+  .res.loss{background:#fde7ea;color:#c02a3c;border:1px solid #f4c2c9}
+  .res.next{background:#eaf1fc;color:var(--blue);border:1px solid #cfe0fb}
+  .tev .sub{font-size:11.5px;color:var(--muted);margin-top:7px;display:flex;gap:8px;flex-wrap:wrap}
+  /* CONFETTI */
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+  .cfp{position:absolute;top:-16px;width:10px;height:15px;opacity:.95;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(106vh) rotate(760deg);opacity:.85}}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:36px;line-height:1.7}
+  @media(max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.grps{grid-template-columns:1fr}.htext h1{font-size:26px}.updated{margin-left:0;width:100%;text-align:left}.hoy-hero .cnt,.tri-count{margin-left:0;width:100%}.tri-record{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div id="confetti"></div>
+<header>
+  <div class="wrap hd">
+    <div class="ball">🏆</div>
+    <div class="htext">
+      <h1>MUNDIAL 2026 ⚽</h1>
+      <div class="sub">🇲🇽 México · 🇺🇸 Estados Unidos · 🇨🇦 Canadá &nbsp;|&nbsp; 104 partidos · 48 selecciones</div>
+      <div class="sub2">11 jun – 19 jul 2026 · Horarios en hora del centro de México (CDMX)</div>
+    </div>
+    <div class="updated">
+      <div class="lbl">Última actualización</div>
+      <div class="val">01/07/2026 17:28</div>
+      <div class="auto">🔄 Se actualiza solo, tras cada partido</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+  <div class="mxbar" id="mxbar"></div>
+
+  <div class="tabs">
+    <div class="tab hoy active" data-view="hoy" onclick="setView('hoy')">📆 Hoy</div>
+    <div class="tab" data-view="partidos" onclick="setView('partidos')">📅 Todos los partidos</div>
+    <div class="tab tri" data-view="tri" onclick="setView('tri')">🇲🇽 El Tri</div>
+    <div class="tab" data-view="pos" onclick="setView('pos')">🏆 Posiciones</div>
+  </div>
+
+  <div id="hoyView"></div>
+
+  <div id="partidosView">
+    <div class="filters">
+      <input class="search" id="q" placeholder="🔎 Escribe un país (ej. Canadá), estadio, ciudad, grupo o fase..." oninput="render()">
+      <select class="fsel" id="faseSel" onchange="render()"></select>
+      <select class="fsel" id="grupoSel" onchange="render()"></select>
+      <div class="chip gold" id="cAz" onclick="tog(this)">🏟️ Azteca</div>
+      <div class="chip" id="cMx" onclick="tog(this)">🇲🇽 México</div>
+      <div class="chip" id="cJug" onclick="tog(this)">⚽ Jugados</div>
+      <div class="chip" id="cProx" onclick="tog(this)">⏳ Próximos</div>
+    </div>
+    <div class="hint">⬆️ Lo más reciente aparece arriba · los partidos jugados llevan su balón ⚽ y van bajando.</div>
+    <div id="list"></div>
+  </div>
+
+  <div id="triView"></div>
+
+  <div id="posView">
+    <div class="grps" id="grps"></div>
+    <div class="leg">
+      <span><span class="d" style="background:#0a8f47"></span> 1º y 2º avanzan directo · mejores 3º clasifican</span>
+      <span><span class="d" style="background:#eafaf1;border:1px solid #bce6cd"></span> Fila verde = México</span>
+    </div>
+  </div>
+
+  <footer>
+    Dashboard generado a partir de <b>Mundial_2026_Calendario.xlsx</b> · Marcadores de <b>resultados.json</b><br>
+    Se actualiza automáticamente tras cada jornada con los resultados oficiales más recientes.
+  </footer>
+</div>
+
+<script>
+const MATCHES = [{"n": 1, "fase": "Fase de grupos", "fecha": "11 jun", "dia": "Jueves", "horaCDMX": "13:00", "horaET": "15:00", "partido": "México vs. Sudáfrica", "local": "México", "visitante": "Sudáfrica", "grupo": "A", "estadio": "Estadio Ciudad de México (Azteca)", "ciudad": "Ciudad de México", "pais": "México", "flagL": "🇲🇽", "flagV": "🇿🇦", "kickoff": "2026-06-11T19:00:00Z", "busca": "mexico vs. sudafrica mexico sudafrica a fase de grupos estadio ciudad de mexico (azteca) ciudad de mexico mexico 11 jun jueves", "golesL": 2, "golesV": 0, "azteca": true, "esMexico": true}, {"n": 2, "fase": "Fase de grupos", "fecha": "11 jun", "dia": "Jueves", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Corea del Sur vs. Chequia", "local": "Corea del Sur", "visitante": "Chequia", "grupo": "A", "estadio": "Estadio Guadalajara (Akron)", "ciudad": "Zapopan", "pais": "México", "flagL": "🇰🇷", "flagV": "🇨🇿", "kickoff": "2026-06-12T02:00:00Z", "busca": "corea del sur vs. chequia corea del sur chequia a fase de grupos estadio guadalajara (akron) zapopan mexico 11 jun jueves", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 3, "fase": "Fase de grupos", "fecha": "12 jun", "dia": "Viernes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Canadá vs. Bosnia y Herzegovina", "local": "Canadá", "visitante": "Bosnia y Herzegovina", "grupo": "B", "estadio": "BMO Field", "ciudad": "Toronto", "pais": "Canadá", "flagL": "🇨🇦", "flagV": "🇧🇦", "kickoff": "2026-06-12T19:00:00Z", "busca": "canada vs. bosnia y herzegovina canada bosnia y herzegovina b fase de grupos bmo field toronto canada 12 jun viernes", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 4, "fase": "Fase de grupos", "fecha": "12 jun", "dia": "Viernes", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Estados Unidos vs. Paraguay", "local": "Estados Unidos", "visitante": "Paraguay", "grupo": "D", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇺🇸", "flagV": "🇵🇾", "kickoff": "2026-06-13T01:00:00Z", "busca": "estados unidos vs. paraguay estados unidos paraguay d fase de grupos sofi stadium inglewood ee.uu. 12 jun viernes", "golesL": 4, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 5, "fase": "Fase de grupos", "fecha": "13 jun", "dia": "Sábado", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Catar vs. Suiza", "local": "Catar", "visitante": "Suiza", "grupo": "B", "estadio": "Levi's Stadium", "ciudad": "Santa Clara", "pais": "EE.UU.", "flagL": "🇶🇦", "flagV": "🇨🇭", "kickoff": "2026-06-13T19:00:00Z", "busca": "catar vs. suiza catar suiza b fase de grupos levi's stadium santa clara ee.uu. 13 jun sabado", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 6, "fase": "Fase de grupos", "fecha": "13 jun", "dia": "Sábado", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Brasil vs. Marruecos", "local": "Brasil", "visitante": "Marruecos", "grupo": "C", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇧🇷", "flagV": "🇲🇦", "kickoff": "2026-06-13T22:00:00Z", "busca": "brasil vs. marruecos brasil marruecos c fase de grupos metlife stadium east rutherford ee.uu. 13 jun sabado", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 7, "fase": "Fase de grupos", "fecha": "13 jun", "dia": "Sábado", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Haití vs. Escocia", "local": "Haití", "visitante": "Escocia", "grupo": "C", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "🇭🇹", "flagV": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "kickoff": "2026-06-14T01:00:00Z", "busca": "haiti vs. escocia haiti escocia c fase de grupos gillette stadium foxborough ee.uu. 13 jun sabado", "golesL": 0, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 8, "fase": "Fase de grupos", "fecha": "14 jun", "dia": "Domingo", "horaCDMX": "10:00", "horaET": "12:00", "partido": "Australia vs. Turquía", "local": "Australia", "visitante": "Turquía", "grupo": "D", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "🇦🇺", "flagV": "🇹🇷", "kickoff": "2026-06-14T16:00:00Z", "busca": "australia vs. turquia australia turquia d fase de grupos bc place vancouver canada 14 jun domingo", "golesL": 2, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 9, "fase": "Fase de grupos", "fecha": "14 jun", "dia": "Domingo", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Alemania vs. Curazao", "local": "Alemania", "visitante": "Curazao", "grupo": "E", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇩🇪", "flagV": "🇨🇼", "kickoff": "2026-06-14T17:00:00Z", "busca": "alemania vs. curazao alemania curazao e fase de grupos nrg stadium houston ee.uu. 14 jun domingo", "golesL": 7, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 10, "fase": "Fase de grupos", "fecha": "14 jun", "dia": "Domingo", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Países Bajos vs. Japón", "local": "Países Bajos", "visitante": "Japón", "grupo": "F", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🇳🇱", "flagV": "🇯🇵", "kickoff": "2026-06-14T20:00:00Z", "busca": "paises bajos vs. japon paises bajos japon f fase de grupos at&t stadium arlington ee.uu. 14 jun domingo", "golesL": 2, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 11, "fase": "Fase de grupos", "fecha": "14 jun", "dia": "Domingo", "horaCDMX": "17:00", "horaET": "19:00", "partido": "Costa de Marfil vs. Ecuador", "local": "Costa de Marfil", "visitante": "Ecuador", "grupo": "E", "estadio": "Lincoln Financial Field", "ciudad": "Filadelfia", "pais": "EE.UU.", "flagL": "🇨🇮", "flagV": "🇪🇨", "kickoff": "2026-06-14T23:00:00Z", "busca": "costa de marfil vs. ecuador costa de marfil ecuador e fase de grupos lincoln financial field filadelfia ee.uu. 14 jun domingo", "golesL": 1, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 12, "fase": "Fase de grupos", "fecha": "14 jun", "dia": "Domingo", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Suecia vs. Túnez", "local": "Suecia", "visitante": "Túnez", "grupo": "F", "estadio": "Estadio Monterrey (BBVA)", "ciudad": "Monterrey", "pais": "México", "flagL": "🇸🇪", "flagV": "🇹🇳", "kickoff": "2026-06-15T02:00:00Z", "busca": "suecia vs. tunez suecia tunez f fase de grupos estadio monterrey (bbva) monterrey mexico 14 jun domingo", "golesL": 5, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 13, "fase": "Fase de grupos", "fecha": "15 jun", "dia": "Lunes", "horaCDMX": "10:00", "horaET": "12:00", "partido": "España vs. Cabo Verde", "local": "España", "visitante": "Cabo Verde", "grupo": "H", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "🇪🇸", "flagV": "🇨🇻", "kickoff": "2026-06-15T16:00:00Z", "busca": "espana vs. cabo verde espana cabo verde h fase de grupos mercedes-benz stadium atlanta ee.uu. 15 jun lunes", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 14, "fase": "Fase de grupos", "fecha": "15 jun", "dia": "Lunes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Bélgica vs. Egipto", "local": "Bélgica", "visitante": "Egipto", "grupo": "G", "estadio": "Lumen Field", "ciudad": "Seattle", "pais": "EE.UU.", "flagL": "🇧🇪", "flagV": "🇪🇬", "kickoff": "2026-06-15T19:00:00Z", "busca": "belgica vs. egipto belgica egipto g fase de grupos lumen field seattle ee.uu. 15 jun lunes", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 15, "fase": "Fase de grupos", "fecha": "15 jun", "dia": "Lunes", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Arabia Saudita vs. Uruguay", "local": "Arabia Saudita", "visitante": "Uruguay", "grupo": "H", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "🇸🇦", "flagV": "🇺🇾", "kickoff": "2026-06-15T22:00:00Z", "busca": "arabia saudita vs. uruguay arabia saudita uruguay h fase de grupos hard rock stadium miami gardens ee.uu. 15 jun lunes", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 16, "fase": "Fase de grupos", "fecha": "15 jun", "dia": "Lunes", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Irán vs. Nueva Zelanda", "local": "Irán", "visitante": "Nueva Zelanda", "grupo": "G", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇮🇷", "flagV": "🇳🇿", "kickoff": "2026-06-16T01:00:00Z", "busca": "iran vs. nueva zelanda iran nueva zelanda g fase de grupos sofi stadium inglewood ee.uu. 15 jun lunes", "golesL": 2, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 17, "fase": "Fase de grupos", "fecha": "16 jun", "dia": "Martes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Francia vs. Senegal", "local": "Francia", "visitante": "Senegal", "grupo": "I", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇫🇷", "flagV": "🇸🇳", "kickoff": "2026-06-16T19:00:00Z", "busca": "francia vs. senegal francia senegal i fase de grupos metlife stadium east rutherford ee.uu. 16 jun martes", "golesL": 3, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 18, "fase": "Fase de grupos", "fecha": "16 jun", "dia": "Martes", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Irak vs. Noruega", "local": "Irak", "visitante": "Noruega", "grupo": "I", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "🇮🇶", "flagV": "🇳🇴", "kickoff": "2026-06-16T22:00:00Z", "busca": "irak vs. noruega irak noruega i fase de grupos gillette stadium foxborough ee.uu. 16 jun martes", "golesL": 1, "golesV": 4, "azteca": false, "esMexico": false}, {"n": 19, "fase": "Fase de grupos", "fecha": "16 jun", "dia": "Martes", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Argentina vs. Argelia", "local": "Argentina", "visitante": "Argelia", "grupo": "J", "estadio": "Arrowhead Stadium", "ciudad": "Kansas City", "pais": "EE.UU.", "flagL": "🇦🇷", "flagV": "🇩🇿", "kickoff": "2026-06-17T01:00:00Z", "busca": "argentina vs. argelia argentina argelia j fase de grupos arrowhead stadium kansas city ee.uu. 16 jun martes", "golesL": 3, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 20, "fase": "Fase de grupos", "fecha": "16 jun", "dia": "Martes", "horaCDMX": "22:00", "horaET": "00:00", "partido": "Austria vs. Jordania", "local": "Austria", "visitante": "Jordania", "grupo": "J", "estadio": "Levi's Stadium", "ciudad": "Santa Clara", "pais": "EE.UU.", "flagL": "🇦🇹", "flagV": "🇯🇴", "kickoff": "2026-06-17T04:00:00Z", "busca": "austria vs. jordania austria jordania j fase de grupos levi's stadium santa clara ee.uu. 16 jun martes", "golesL": 3, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 21, "fase": "Fase de grupos", "fecha": "17 jun", "dia": "Miércoles", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Portugal vs. RD Congo", "local": "Portugal", "visitante": "RD Congo", "grupo": "K", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇵🇹", "flagV": "🇨🇩", "kickoff": "2026-06-17T17:00:00Z", "busca": "portugal vs. rd congo portugal rd congo k fase de grupos nrg stadium houston ee.uu. 17 jun miercoles", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 22, "fase": "Fase de grupos", "fecha": "17 jun", "dia": "Miércoles", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Inglaterra vs. Croacia", "local": "Inglaterra", "visitante": "Croacia", "grupo": "L", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "flagV": "🇭🇷", "kickoff": "2026-06-17T20:00:00Z", "busca": "inglaterra vs. croacia inglaterra croacia l fase de grupos at&t stadium arlington ee.uu. 17 jun miercoles", "golesL": 4, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 23, "fase": "Fase de grupos", "fecha": "17 jun", "dia": "Miércoles", "horaCDMX": "17:00", "horaET": "19:00", "partido": "Ghana vs. Panamá", "local": "Ghana", "visitante": "Panamá", "grupo": "L", "estadio": "BMO Field", "ciudad": "Toronto", "pais": "Canadá", "flagL": "🇬🇭", "flagV": "🇵🇦", "kickoff": "2026-06-17T23:00:00Z", "busca": "ghana vs. panama ghana panama l fase de grupos bmo field toronto canada 17 jun miercoles", "golesL": 1, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 24, "fase": "Fase de grupos", "fecha": "17 jun", "dia": "Miércoles", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Uzbekistán vs. Colombia", "local": "Uzbekistán", "visitante": "Colombia", "grupo": "K", "estadio": "Estadio Ciudad de México (Azteca)", "ciudad": "Ciudad de México", "pais": "México", "flagL": "🇺🇿", "flagV": "🇨🇴", "kickoff": "2026-06-18T02:00:00Z", "busca": "uzbekistan vs. colombia uzbekistan colombia k fase de grupos estadio ciudad de mexico (azteca) ciudad de mexico mexico 17 jun miercoles", "golesL": 1, "golesV": 3, "azteca": true, "esMexico": false}, {"n": 25, "fase": "Fase de grupos", "fecha": "18 jun", "dia": "Jueves", "horaCDMX": "10:00", "horaET": "12:00", "partido": "Chequia vs. Sudáfrica", "local": "Chequia", "visitante": "Sudáfrica", "grupo": "A", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "🇨🇿", "flagV": "🇿🇦", "kickoff": "2026-06-18T16:00:00Z", "busca": "chequia vs. sudafrica chequia sudafrica a fase de grupos mercedes-benz stadium atlanta ee.uu. 18 jun jueves", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 26, "fase": "Fase de grupos", "fecha": "18 jun", "dia": "Jueves", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Suiza vs. Bosnia y Herzegovina", "local": "Suiza", "visitante": "Bosnia y Herzegovina", "grupo": "B", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇨🇭", "flagV": "🇧🇦", "kickoff": "2026-06-18T19:00:00Z", "busca": "suiza vs. bosnia y herzegovina suiza bosnia y herzegovina b fase de grupos sofi stadium inglewood ee.uu. 18 jun jueves", "golesL": 4, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 27, "fase": "Fase de grupos", "fecha": "18 jun", "dia": "Jueves", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Canadá vs. Catar", "local": "Canadá", "visitante": "Catar", "grupo": "B", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "🇨🇦", "flagV": "🇶🇦", "kickoff": "2026-06-18T22:00:00Z", "busca": "canada vs. catar canada catar b fase de grupos bc place vancouver canada 18 jun jueves", "golesL": 6, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 28, "fase": "Fase de grupos", "fecha": "18 jun", "dia": "Jueves", "horaCDMX": "19:00", "horaET": "21:00", "partido": "México vs. Corea del Sur", "local": "México", "visitante": "Corea del Sur", "grupo": "A", "estadio": "Estadio Guadalajara (Akron)", "ciudad": "Zapopan", "pais": "México", "flagL": "🇲🇽", "flagV": "🇰🇷", "kickoff": "2026-06-19T01:00:00Z", "busca": "mexico vs. corea del sur mexico corea del sur a fase de grupos estadio guadalajara (akron) zapopan mexico 18 jun jueves", "golesL": 1, "golesV": 0, "azteca": false, "esMexico": true}, {"n": 29, "fase": "Fase de grupos", "fecha": "19 jun", "dia": "Viernes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Estados Unidos vs. Australia", "local": "Estados Unidos", "visitante": "Australia", "grupo": "D", "estadio": "Lumen Field", "ciudad": "Seattle", "pais": "EE.UU.", "flagL": "🇺🇸", "flagV": "🇦🇺", "kickoff": "2026-06-19T19:00:00Z", "busca": "estados unidos vs. australia estados unidos australia d fase de grupos lumen field seattle ee.uu. 19 jun viernes", "golesL": 2, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 30, "fase": "Fase de grupos", "fecha": "19 jun", "dia": "Viernes", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Escocia vs. Marruecos", "local": "Escocia", "visitante": "Marruecos", "grupo": "C", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "flagV": "🇲🇦", "kickoff": "2026-06-19T22:00:00Z", "busca": "escocia vs. marruecos escocia marruecos c fase de grupos gillette stadium foxborough ee.uu. 19 jun viernes", "golesL": 0, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 31, "fase": "Fase de grupos", "fecha": "19 jun", "dia": "Viernes", "horaCDMX": "18:30", "horaET": "20:30", "partido": "Brasil vs. Haití", "local": "Brasil", "visitante": "Haití", "grupo": "C", "estadio": "Lincoln Financial Field", "ciudad": "Filadelfia", "pais": "EE.UU.", "flagL": "🇧🇷", "flagV": "🇭🇹", "kickoff": "2026-06-20T00:30:00Z", "busca": "brasil vs. haiti brasil haiti c fase de grupos lincoln financial field filadelfia ee.uu. 19 jun viernes", "golesL": 3, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 32, "fase": "Fase de grupos", "fecha": "19 jun", "dia": "Viernes", "horaCDMX": "21:00", "horaET": "23:00", "partido": "Turquía vs. Paraguay", "local": "Turquía", "visitante": "Paraguay", "grupo": "D", "estadio": "Levi's Stadium", "ciudad": "Santa Clara", "pais": "EE.UU.", "flagL": "🇹🇷", "flagV": "🇵🇾", "kickoff": "2026-06-20T03:00:00Z", "busca": "turquia vs. paraguay turquia paraguay d fase de grupos levi's stadium santa clara ee.uu. 19 jun viernes", "golesL": 0, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 33, "fase": "Fase de grupos", "fecha": "20 jun", "dia": "Sábado", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Países Bajos vs. Suecia", "local": "Países Bajos", "visitante": "Suecia", "grupo": "F", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇳🇱", "flagV": "🇸🇪", "kickoff": "2026-06-20T17:00:00Z", "busca": "paises bajos vs. suecia paises bajos suecia f fase de grupos nrg stadium houston ee.uu. 20 jun sabado", "golesL": 5, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 34, "fase": "Fase de grupos", "fecha": "20 jun", "dia": "Sábado", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Alemania vs. Costa de Marfil", "local": "Alemania", "visitante": "Costa de Marfil", "grupo": "E", "estadio": "BMO Field", "ciudad": "Toronto", "pais": "Canadá", "flagL": "🇩🇪", "flagV": "🇨🇮", "kickoff": "2026-06-20T20:00:00Z", "busca": "alemania vs. costa de marfil alemania costa de marfil e fase de grupos bmo field toronto canada 20 jun sabado", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 35, "fase": "Fase de grupos", "fecha": "20 jun", "dia": "Sábado", "horaCDMX": "18:00", "horaET": "20:00", "partido": "Ecuador vs. Curazao", "local": "Ecuador", "visitante": "Curazao", "grupo": "E", "estadio": "Arrowhead Stadium", "ciudad": "Kansas City", "pais": "EE.UU.", "flagL": "🇪🇨", "flagV": "🇨🇼", "kickoff": "2026-06-21T00:00:00Z", "busca": "ecuador vs. curazao ecuador curazao e fase de grupos arrowhead stadium kansas city ee.uu. 20 jun sabado", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 36, "fase": "Fase de grupos", "fecha": "20 jun", "dia": "Sábado", "horaCDMX": "22:00", "horaET": "00:00", "partido": "Túnez vs. Japón", "local": "Túnez", "visitante": "Japón", "grupo": "F", "estadio": "Estadio Monterrey (BBVA)", "ciudad": "Monterrey", "pais": "México", "flagL": "🇹🇳", "flagV": "🇯🇵", "kickoff": "2026-06-21T04:00:00Z", "busca": "tunez vs. japon tunez japon f fase de grupos estadio monterrey (bbva) monterrey mexico 20 jun sabado", "golesL": 0, "golesV": 4, "azteca": false, "esMexico": false}, {"n": 37, "fase": "Fase de grupos", "fecha": "21 jun", "dia": "Domingo", "horaCDMX": "10:00", "horaET": "12:00", "partido": "España vs. Arabia Saudita", "local": "España", "visitante": "Arabia Saudita", "grupo": "H", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "🇪🇸", "flagV": "🇸🇦", "kickoff": "2026-06-21T16:00:00Z", "busca": "espana vs. arabia saudita espana arabia saudita h fase de grupos mercedes-benz stadium atlanta ee.uu. 21 jun domingo", "golesL": 4, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 38, "fase": "Fase de grupos", "fecha": "21 jun", "dia": "Domingo", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Bélgica vs. Irán", "local": "Bélgica", "visitante": "Irán", "grupo": "G", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇧🇪", "flagV": "🇮🇷", "kickoff": "2026-06-21T19:00:00Z", "busca": "belgica vs. iran belgica iran g fase de grupos sofi stadium inglewood ee.uu. 21 jun domingo", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 39, "fase": "Fase de grupos", "fecha": "21 jun", "dia": "Domingo", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Uruguay vs. Cabo Verde", "local": "Uruguay", "visitante": "Cabo Verde", "grupo": "H", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "🇺🇾", "flagV": "🇨🇻", "kickoff": "2026-06-21T22:00:00Z", "busca": "uruguay vs. cabo verde uruguay cabo verde h fase de grupos hard rock stadium miami gardens ee.uu. 21 jun domingo", "golesL": 2, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 40, "fase": "Fase de grupos", "fecha": "21 jun", "dia": "Domingo", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Nueva Zelanda vs. Egipto", "local": "Nueva Zelanda", "visitante": "Egipto", "grupo": "G", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "🇳🇿", "flagV": "🇪🇬", "kickoff": "2026-06-22T01:00:00Z", "busca": "nueva zelanda vs. egipto nueva zelanda egipto g fase de grupos bc place vancouver canada 21 jun domingo", "golesL": 1, "golesV": 3, "azteca": false, "esMexico": false}, {"n": 41, "fase": "Fase de grupos", "fecha": "22 jun", "dia": "Lunes", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Argentina vs. Austria", "local": "Argentina", "visitante": "Austria", "grupo": "J", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🇦🇷", "flagV": "🇦🇹", "kickoff": "2026-06-22T17:00:00Z", "busca": "argentina vs. austria argentina austria j fase de grupos at&t stadium arlington ee.uu. 22 jun lunes", "golesL": 2, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 42, "fase": "Fase de grupos", "fecha": "22 jun", "dia": "Lunes", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Francia vs. Irak", "local": "Francia", "visitante": "Irak", "grupo": "I", "estadio": "Lincoln Financial Field", "ciudad": "Filadelfia", "pais": "EE.UU.", "flagL": "🇫🇷", "flagV": "🇮🇶", "kickoff": "2026-06-22T21:00:00Z", "busca": "francia vs. irak francia irak i fase de grupos lincoln financial field filadelfia ee.uu. 22 jun lunes", "golesL": 3, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 43, "fase": "Fase de grupos", "fecha": "22 jun", "dia": "Lunes", "horaCDMX": "18:00", "horaET": "20:00", "partido": "Noruega vs. Senegal", "local": "Noruega", "visitante": "Senegal", "grupo": "I", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇳🇴", "flagV": "🇸🇳", "kickoff": "2026-06-23T00:00:00Z", "busca": "noruega vs. senegal noruega senegal i fase de grupos metlife stadium east rutherford ee.uu. 22 jun lunes", "golesL": 3, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 44, "fase": "Fase de grupos", "fecha": "22 jun", "dia": "Lunes", "horaCDMX": "21:00", "horaET": "23:00", "partido": "Jordania vs. Argelia", "local": "Jordania", "visitante": "Argelia", "grupo": "J", "estadio": "Levi's Stadium", "ciudad": "Santa Clara", "pais": "EE.UU.", "flagL": "🇯🇴", "flagV": "🇩🇿", "kickoff": "2026-06-23T03:00:00Z", "busca": "jordania vs. argelia jordania argelia j fase de grupos levi's stadium santa clara ee.uu. 22 jun lunes", "golesL": 1, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 45, "fase": "Fase de grupos", "fecha": "23 jun", "dia": "Martes", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Portugal vs. Uzbekistán", "local": "Portugal", "visitante": "Uzbekistán", "grupo": "K", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇵🇹", "flagV": "🇺🇿", "kickoff": "2026-06-23T17:00:00Z", "busca": "portugal vs. uzbekistan portugal uzbekistan k fase de grupos nrg stadium houston ee.uu. 23 jun martes", "golesL": 5, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 46, "fase": "Fase de grupos", "fecha": "23 jun", "dia": "Martes", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Inglaterra vs. Ghana", "local": "Inglaterra", "visitante": "Ghana", "grupo": "L", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "flagV": "🇬🇭", "kickoff": "2026-06-23T20:00:00Z", "busca": "inglaterra vs. ghana inglaterra ghana l fase de grupos gillette stadium foxborough ee.uu. 23 jun martes", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 47, "fase": "Fase de grupos", "fecha": "23 jun", "dia": "Martes", "horaCDMX": "17:00", "horaET": "19:00", "partido": "Panamá vs. Croacia", "local": "Panamá", "visitante": "Croacia", "grupo": "L", "estadio": "BMO Field", "ciudad": "Toronto", "pais": "Canadá", "flagL": "🇵🇦", "flagV": "🇭🇷", "kickoff": "2026-06-23T23:00:00Z", "busca": "panama vs. croacia panama croacia l fase de grupos bmo field toronto canada 23 jun martes", "golesL": 0, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 48, "fase": "Fase de grupos", "fecha": "23 jun", "dia": "Martes", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Colombia vs. RD Congo", "local": "Colombia", "visitante": "RD Congo", "grupo": "K", "estadio": "Estadio Guadalajara (Akron)", "ciudad": "Zapopan", "pais": "México", "flagL": "🇨🇴", "flagV": "🇨🇩", "kickoff": "2026-06-24T02:00:00Z", "busca": "colombia vs. rd congo colombia rd congo k fase de grupos estadio guadalajara (akron) zapopan mexico 23 jun martes", "golesL": 1, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 49, "fase": "Fase de grupos", "fecha": "24 jun", "dia": "Miércoles", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Suiza vs. Canadá", "local": "Suiza", "visitante": "Canadá", "grupo": "B", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "🇨🇭", "flagV": "🇨🇦", "kickoff": "2026-06-24T19:00:00Z", "busca": "suiza vs. canada suiza canada b fase de grupos bc place vancouver canada 24 jun miercoles", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 50, "fase": "Fase de grupos", "fecha": "24 jun", "dia": "Miércoles", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Bosnia y Herzegovina vs. Catar", "local": "Bosnia y Herzegovina", "visitante": "Catar", "grupo": "B", "estadio": "Lumen Field", "ciudad": "Seattle", "pais": "EE.UU.", "flagL": "🇧🇦", "flagV": "🇶🇦", "kickoff": "2026-06-24T19:00:00Z", "busca": "bosnia y herzegovina vs. catar bosnia y herzegovina catar b fase de grupos lumen field seattle ee.uu. 24 jun miercoles", "golesL": 3, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 51, "fase": "Fase de grupos", "fecha": "24 jun", "dia": "Miércoles", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Escocia vs. Brasil", "local": "Escocia", "visitante": "Brasil", "grupo": "C", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "flagV": "🇧🇷", "kickoff": "2026-06-24T22:00:00Z", "busca": "escocia vs. brasil escocia brasil c fase de grupos hard rock stadium miami gardens ee.uu. 24 jun miercoles", "golesL": 0, "golesV": 3, "azteca": false, "esMexico": false}, {"n": 52, "fase": "Fase de grupos", "fecha": "24 jun", "dia": "Miércoles", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Marruecos vs. Haití", "local": "Marruecos", "visitante": "Haití", "grupo": "C", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "🇲🇦", "flagV": "🇭🇹", "kickoff": "2026-06-24T22:00:00Z", "busca": "marruecos vs. haiti marruecos haiti c fase de grupos mercedes-benz stadium atlanta ee.uu. 24 jun miercoles", "golesL": 4, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 53, "fase": "Fase de grupos", "fecha": "24 jun", "dia": "Miércoles", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Chequia vs. México", "local": "Chequia", "visitante": "México", "grupo": "A", "estadio": "Estadio Ciudad de México (Azteca)", "ciudad": "Ciudad de México", "pais": "México", "flagL": "🇨🇿", "flagV": "🇲🇽", "kickoff": "2026-06-25T01:00:00Z", "busca": "chequia vs. mexico chequia mexico a fase de grupos estadio ciudad de mexico (azteca) ciudad de mexico mexico 24 jun miercoles", "golesL": 0, "golesV": 3, "azteca": true, "esMexico": true}, {"n": 54, "fase": "Fase de grupos", "fecha": "24 jun", "dia": "Miércoles", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Sudáfrica vs. Corea del Sur", "local": "Sudáfrica", "visitante": "Corea del Sur", "grupo": "A", "estadio": "Estadio Monterrey (BBVA)", "ciudad": "Monterrey", "pais": "México", "flagL": "🇿🇦", "flagV": "🇰🇷", "kickoff": "2026-06-25T01:00:00Z", "busca": "sudafrica vs. corea del sur sudafrica corea del sur a fase de grupos estadio monterrey (bbva) monterrey mexico 24 jun miercoles", "golesL": 1, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 55, "fase": "Fase de grupos", "fecha": "25 jun", "dia": "Jueves", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Curazao vs. Costa de Marfil", "local": "Curazao", "visitante": "Costa de Marfil", "grupo": "E", "estadio": "Lincoln Financial Field", "ciudad": "Filadelfia", "pais": "EE.UU.", "flagL": "🇨🇼", "flagV": "🇨🇮", "kickoff": "2026-06-25T20:00:00Z", "busca": "curazao vs. costa de marfil curazao costa de marfil e fase de grupos lincoln financial field filadelfia ee.uu. 25 jun jueves", "golesL": 0, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 56, "fase": "Fase de grupos", "fecha": "25 jun", "dia": "Jueves", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Ecuador vs. Alemania", "local": "Ecuador", "visitante": "Alemania", "grupo": "E", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇪🇨", "flagV": "🇩🇪", "kickoff": "2026-06-25T20:00:00Z", "busca": "ecuador vs. alemania ecuador alemania e fase de grupos metlife stadium east rutherford ee.uu. 25 jun jueves", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 57, "fase": "Fase de grupos", "fecha": "25 jun", "dia": "Jueves", "horaCDMX": "17:00", "horaET": "19:00", "partido": "Japón vs. Suecia", "local": "Japón", "visitante": "Suecia", "grupo": "F", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🇯🇵", "flagV": "🇸🇪", "kickoff": "2026-06-25T23:00:00Z", "busca": "japon vs. suecia japon suecia f fase de grupos at&t stadium arlington ee.uu. 25 jun jueves", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 58, "fase": "Fase de grupos", "fecha": "25 jun", "dia": "Jueves", "horaCDMX": "17:00", "horaET": "19:00", "partido": "Túnez vs. Países Bajos", "local": "Túnez", "visitante": "Países Bajos", "grupo": "F", "estadio": "Arrowhead Stadium", "ciudad": "Kansas City", "pais": "EE.UU.", "flagL": "🇹🇳", "flagV": "🇳🇱", "kickoff": "2026-06-25T23:00:00Z", "busca": "tunez vs. paises bajos tunez paises bajos f fase de grupos arrowhead stadium kansas city ee.uu. 25 jun jueves", "golesL": 1, "golesV": 3, "azteca": false, "esMexico": false}, {"n": 59, "fase": "Fase de grupos", "fecha": "25 jun", "dia": "Jueves", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Turquía vs. Estados Unidos", "local": "Turquía", "visitante": "Estados Unidos", "grupo": "D", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇹🇷", "flagV": "🇺🇸", "kickoff": "2026-06-26T02:00:00Z", "busca": "turquia vs. estados unidos turquia estados unidos d fase de grupos sofi stadium inglewood ee.uu. 25 jun jueves", "golesL": 3, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 60, "fase": "Fase de grupos", "fecha": "25 jun", "dia": "Jueves", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Paraguay vs. Australia", "local": "Paraguay", "visitante": "Australia", "grupo": "D", "estadio": "Levi's Stadium", "ciudad": "Santa Clara", "pais": "EE.UU.", "flagL": "🇵🇾", "flagV": "🇦🇺", "kickoff": "2026-06-26T02:00:00Z", "busca": "paraguay vs. australia paraguay australia d fase de grupos levi's stadium santa clara ee.uu. 25 jun jueves", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 61, "fase": "Fase de grupos", "fecha": "26 jun", "dia": "Viernes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Noruega vs. Francia", "local": "Noruega", "visitante": "Francia", "grupo": "I", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "🇳🇴", "flagV": "🇫🇷", "kickoff": "2026-06-26T19:00:00Z", "busca": "noruega vs. francia noruega francia i fase de grupos gillette stadium foxborough ee.uu. 26 jun viernes", "golesL": 1, "golesV": 4, "azteca": false, "esMexico": false}, {"n": 62, "fase": "Fase de grupos", "fecha": "26 jun", "dia": "Viernes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Senegal vs. Irak", "local": "Senegal", "visitante": "Irak", "grupo": "I", "estadio": "BMO Field", "ciudad": "Toronto", "pais": "Canadá", "flagL": "🇸🇳", "flagV": "🇮🇶", "kickoff": "2026-06-26T19:00:00Z", "busca": "senegal vs. irak senegal irak i fase de grupos bmo field toronto canada 26 jun viernes", "golesL": 5, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 63, "fase": "Fase de grupos", "fecha": "26 jun", "dia": "Viernes", "horaCDMX": "18:00", "horaET": "20:00", "partido": "Cabo Verde vs. Arabia Saudita", "local": "Cabo Verde", "visitante": "Arabia Saudita", "grupo": "H", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇨🇻", "flagV": "🇸🇦", "kickoff": "2026-06-27T00:00:00Z", "busca": "cabo verde vs. arabia saudita cabo verde arabia saudita h fase de grupos nrg stadium houston ee.uu. 26 jun viernes", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 64, "fase": "Fase de grupos", "fecha": "26 jun", "dia": "Viernes", "horaCDMX": "18:00", "horaET": "20:00", "partido": "Uruguay vs. España", "local": "Uruguay", "visitante": "España", "grupo": "H", "estadio": "Estadio Guadalajara (Akron)", "ciudad": "Zapopan", "pais": "México", "flagL": "🇺🇾", "flagV": "🇪🇸", "kickoff": "2026-06-27T00:00:00Z", "busca": "uruguay vs. espana uruguay espana h fase de grupos estadio guadalajara (akron) zapopan mexico 26 jun viernes", "golesL": 0, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 65, "fase": "Fase de grupos", "fecha": "26 jun", "dia": "Viernes", "horaCDMX": "21:00", "horaET": "23:00", "partido": "Egipto vs. Irán", "local": "Egipto", "visitante": "Irán", "grupo": "G", "estadio": "Lumen Field", "ciudad": "Seattle", "pais": "EE.UU.", "flagL": "🇪🇬", "flagV": "🇮🇷", "kickoff": "2026-06-27T03:00:00Z", "busca": "egipto vs. iran egipto iran g fase de grupos lumen field seattle ee.uu. 26 jun viernes", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 66, "fase": "Fase de grupos", "fecha": "26 jun", "dia": "Viernes", "horaCDMX": "21:00", "horaET": "23:00", "partido": "Nueva Zelanda vs. Bélgica", "local": "Nueva Zelanda", "visitante": "Bélgica", "grupo": "G", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "🇳🇿", "flagV": "🇧🇪", "kickoff": "2026-06-27T03:00:00Z", "busca": "nueva zelanda vs. belgica nueva zelanda belgica g fase de grupos bc place vancouver canada 26 jun viernes", "golesL": 1, "golesV": 5, "azteca": false, "esMexico": false}, {"n": 67, "fase": "Fase de grupos", "fecha": "27 jun", "dia": "Sábado", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Panamá vs. Inglaterra", "local": "Panamá", "visitante": "Inglaterra", "grupo": "L", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇵🇦", "flagV": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "kickoff": "2026-06-27T21:00:00Z", "busca": "panama vs. inglaterra panama inglaterra l fase de grupos metlife stadium east rutherford ee.uu. 27 jun sabado", "golesL": 0, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 68, "fase": "Fase de grupos", "fecha": "27 jun", "dia": "Sábado", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Croacia vs. Ghana", "local": "Croacia", "visitante": "Ghana", "grupo": "L", "estadio": "Lincoln Financial Field", "ciudad": "Filadelfia", "pais": "EE.UU.", "flagL": "🇭🇷", "flagV": "🇬🇭", "kickoff": "2026-06-27T21:00:00Z", "busca": "croacia vs. ghana croacia ghana l fase de grupos lincoln financial field filadelfia ee.uu. 27 jun sabado", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 69, "fase": "Fase de grupos", "fecha": "27 jun", "dia": "Sábado", "horaCDMX": "17:30", "horaET": "19:30", "partido": "Colombia vs. Portugal", "local": "Colombia", "visitante": "Portugal", "grupo": "K", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "🇨🇴", "flagV": "🇵🇹", "kickoff": "2026-06-27T23:30:00Z", "busca": "colombia vs. portugal colombia portugal k fase de grupos hard rock stadium miami gardens ee.uu. 27 jun sabado", "golesL": 0, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 70, "fase": "Fase de grupos", "fecha": "27 jun", "dia": "Sábado", "horaCDMX": "17:30", "horaET": "19:30", "partido": "RD Congo vs. Uzbekistán", "local": "RD Congo", "visitante": "Uzbekistán", "grupo": "K", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "🇨🇩", "flagV": "🇺🇿", "kickoff": "2026-06-27T23:30:00Z", "busca": "rd congo vs. uzbekistan rd congo uzbekistan k fase de grupos mercedes-benz stadium atlanta ee.uu. 27 jun sabado", "golesL": 3, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 71, "fase": "Fase de grupos", "fecha": "27 jun", "dia": "Sábado", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Argelia vs. Austria", "local": "Argelia", "visitante": "Austria", "grupo": "J", "estadio": "Arrowhead Stadium", "ciudad": "Kansas City", "pais": "EE.UU.", "flagL": "🇩🇿", "flagV": "🇦🇹", "kickoff": "2026-06-28T02:00:00Z", "busca": "argelia vs. austria argelia austria j fase de grupos arrowhead stadium kansas city ee.uu. 27 jun sabado", "golesL": 3, "golesV": 3, "azteca": false, "esMexico": false}, {"n": 72, "fase": "Fase de grupos", "fecha": "27 jun", "dia": "Sábado", "horaCDMX": "20:00", "horaET": "22:00", "partido": "Jordania vs. Argentina", "local": "Jordania", "visitante": "Argentina", "grupo": "J", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🇯🇴", "flagV": "🇦🇷", "kickoff": "2026-06-28T02:00:00Z", "busca": "jordania vs. argentina jordania argentina j fase de grupos at&t stadium arlington ee.uu. 27 jun sabado", "golesL": 1, "golesV": 3, "azteca": false, "esMexico": false}, {"n": 73, "fase": "Dieciseisavos", "fecha": "28 jun", "dia": "Domingo", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Sudáfrica vs. Canadá", "local": "Sudáfrica", "visitante": "Canadá", "grupo": "—", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇿🇦", "flagV": "🇨🇦", "kickoff": "2026-06-28T19:00:00Z", "busca": "sudafrica vs. canada sudafrica canada — dieciseisavos sofi stadium inglewood ee.uu. 28 jun domingo", "golesL": 0, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 74, "fase": "Dieciseisavos", "fecha": "29 jun", "dia": "Lunes", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Brasil vs. Japón", "local": "Brasil", "visitante": "Japón", "grupo": "—", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇧🇷", "flagV": "🇯🇵", "kickoff": "2026-06-29T17:00:00Z", "busca": "brasil vs. japon brasil japon — dieciseisavos nrg stadium houston ee.uu. 29 jun lunes", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 75, "fase": "Dieciseisavos", "fecha": "29 jun", "dia": "Lunes", "horaCDMX": "14:30", "horaET": "16:30", "partido": "Alemania vs. Paraguay", "local": "Alemania", "visitante": "Paraguay", "grupo": "—", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "🇩🇪", "flagV": "🇵🇾", "kickoff": "2026-06-29T20:30:00Z", "busca": "alemania vs. paraguay alemania paraguay — dieciseisavos gillette stadium foxborough ee.uu. 29 jun lunes", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 76, "fase": "Dieciseisavos", "fecha": "29 jun", "dia": "Lunes", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Países Bajos vs. Marruecos", "local": "Países Bajos", "visitante": "Marruecos", "grupo": "—", "estadio": "Estadio Monterrey (BBVA)", "ciudad": "Monterrey", "pais": "México", "flagL": "🇳🇱", "flagV": "🇲🇦", "kickoff": "2026-06-30T01:00:00Z", "busca": "paises bajos vs. marruecos paises bajos marruecos — dieciseisavos estadio monterrey (bbva) monterrey mexico 29 jun lunes", "golesL": 1, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 77, "fase": "Dieciseisavos", "fecha": "30 jun", "dia": "Martes", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Costa de Marfil vs. Noruega", "local": "Costa de Marfil", "visitante": "Noruega", "grupo": "—", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🇨🇮", "flagV": "🇳🇴", "kickoff": "2026-06-30T17:00:00Z", "busca": "costa de marfil vs. noruega costa de marfil noruega — dieciseisavos at&t stadium arlington ee.uu. 30 jun martes", "golesL": 1, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 78, "fase": "Dieciseisavos", "fecha": "30 jun", "dia": "Martes", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Francia vs. Suecia", "local": "Francia", "visitante": "Suecia", "grupo": "—", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇫🇷", "flagV": "🇸🇪", "kickoff": "2026-06-30T21:00:00Z", "busca": "francia vs. suecia francia suecia — dieciseisavos metlife stadium east rutherford ee.uu. 30 jun martes", "golesL": 3, "golesV": 0, "azteca": false, "esMexico": false}, {"n": 79, "fase": "Dieciseisavos", "fecha": "30 jun", "dia": "Martes", "horaCDMX": "19:00", "horaET": "21:00", "partido": "México vs. Ecuador", "local": "México", "visitante": "Ecuador", "grupo": "—", "estadio": "Estadio Ciudad de México (Azteca)", "ciudad": "Ciudad de México", "pais": "México", "flagL": "🇲🇽", "flagV": "🇪🇨", "kickoff": "2026-07-01T01:00:00Z", "busca": "mexico vs. ecuador mexico ecuador — dieciseisavos estadio ciudad de mexico (azteca) ciudad de mexico mexico 30 jun martes", "golesL": 2, "golesV": 0, "azteca": true, "esMexico": true}, {"n": 80, "fase": "Dieciseisavos", "fecha": "1 jul", "dia": "Miércoles", "horaCDMX": "10:00", "horaET": "12:00", "partido": "Inglaterra vs. RD Congo", "local": "Inglaterra", "visitante": "RD Congo", "grupo": "—", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "flagV": "🇨🇩", "kickoff": "2026-07-01T16:00:00Z", "busca": "inglaterra vs. rd congo inglaterra rd congo — dieciseisavos mercedes-benz stadium atlanta ee.uu. 1 jul miercoles", "golesL": 2, "golesV": 1, "azteca": false, "esMexico": false}, {"n": 81, "fase": "Dieciseisavos", "fecha": "1 jul", "dia": "Miércoles", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Bélgica vs. Senegal", "local": "Bélgica", "visitante": "Senegal", "grupo": "—", "estadio": "Lumen Field", "ciudad": "Seattle", "pais": "EE.UU.", "flagL": "🇧🇪", "flagV": "🇸🇳", "kickoff": "2026-07-01T20:00:00Z", "busca": "belgica vs. senegal belgica senegal — dieciseisavos lumen field seattle ee.uu. 1 jul miercoles", "golesL": 3, "golesV": 2, "azteca": false, "esMexico": false}, {"n": 82, "fase": "Dieciseisavos", "fecha": "1 jul", "dia": "Miércoles", "horaCDMX": "18:00", "horaET": "20:00", "partido": "Estados Unidos vs. Bosnia y Herzegovina", "local": "Estados Unidos", "visitante": "Bosnia y Herzegovina", "grupo": "—", "estadio": "Levi's Stadium", "ciudad": "Santa Clara", "pais": "EE.UU.", "flagL": "🇺🇸", "flagV": "🇧🇦", "kickoff": "2026-07-02T00:00:00Z", "busca": "estados unidos vs. bosnia y herzegovina estados unidos bosnia y herzegovina — dieciseisavos levi's stadium santa clara ee.uu. 1 jul miercoles", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 83, "fase": "Dieciseisavos", "fecha": "2 jul", "dia": "Jueves", "horaCDMX": "13:00", "horaET": "15:00", "partido": "España vs. Austria", "local": "España", "visitante": "Austria", "grupo": "—", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "🇪🇸", "flagV": "🇦🇹", "kickoff": "2026-07-02T19:00:00Z", "busca": "espana vs. austria espana austria — dieciseisavos sofi stadium inglewood ee.uu. 2 jul jueves", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 84, "fase": "Dieciseisavos", "fecha": "2 jul", "dia": "Jueves", "horaCDMX": "17:00", "horaET": "19:00", "partido": "Portugal vs. Croacia", "local": "Portugal", "visitante": "Croacia", "grupo": "—", "estadio": "BMO Field", "ciudad": "Toronto", "pais": "Canadá", "flagL": "🇵🇹", "flagV": "🇭🇷", "kickoff": "2026-07-02T23:00:00Z", "busca": "portugal vs. croacia portugal croacia — dieciseisavos bmo field toronto canada 2 jul jueves", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 85, "fase": "Dieciseisavos", "fecha": "2 jul", "dia": "Jueves", "horaCDMX": "21:00", "horaET": "23:00", "partido": "Suiza vs. Argelia", "local": "Suiza", "visitante": "Argelia", "grupo": "—", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "🇨🇭", "flagV": "🇩🇿", "kickoff": "2026-07-03T03:00:00Z", "busca": "suiza vs. argelia suiza argelia — dieciseisavos bc place vancouver canada 2 jul jueves", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 86, "fase": "Dieciseisavos", "fecha": "3 jul", "dia": "Viernes", "horaCDMX": "12:00", "horaET": "14:00", "partido": "Australia vs. Egipto", "local": "Australia", "visitante": "Egipto", "grupo": "—", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "🇦🇺", "flagV": "🇪🇬", "kickoff": "2026-07-03T18:00:00Z", "busca": "australia vs. egipto australia egipto — dieciseisavos at&t stadium arlington ee.uu. 3 jul viernes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 87, "fase": "Dieciseisavos", "fecha": "3 jul", "dia": "Viernes", "horaCDMX": "16:00", "horaET": "18:00", "partido": "Argentina vs. Cabo Verde", "local": "Argentina", "visitante": "Cabo Verde", "grupo": "—", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "🇦🇷", "flagV": "🇨🇻", "kickoff": "2026-07-03T22:00:00Z", "busca": "argentina vs. cabo verde argentina cabo verde — dieciseisavos hard rock stadium miami gardens ee.uu. 3 jul viernes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 88, "fase": "Dieciseisavos", "fecha": "3 jul", "dia": "Viernes", "horaCDMX": "19:30", "horaET": "21:30", "partido": "Colombia vs. Ghana", "local": "Colombia", "visitante": "Ghana", "grupo": "—", "estadio": "Arrowhead Stadium", "ciudad": "Kansas City", "pais": "EE.UU.", "flagL": "🇨🇴", "flagV": "🇬🇭", "kickoff": "2026-07-04T01:30:00Z", "busca": "colombia vs. ghana colombia ghana — dieciseisavos arrowhead stadium kansas city ee.uu. 3 jul viernes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 89, "fase": "Octavos", "fecha": "4 jul", "dia": "Sábado", "horaCDMX": "11:00", "horaET": "13:00", "partido": "Canadá vs. Marruecos", "local": "Canadá", "visitante": "Marruecos", "grupo": "—", "estadio": "NRG Stadium", "ciudad": "Houston", "pais": "EE.UU.", "flagL": "🇨🇦", "flagV": "🇲🇦", "kickoff": "2026-07-04T17:00:00Z", "busca": "canada vs. marruecos canada marruecos — octavos nrg stadium houston ee.uu. 4 jul sabado", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 90, "fase": "Octavos", "fecha": "4 jul", "dia": "Sábado", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Paraguay vs. Francia", "local": "Paraguay", "visitante": "Francia", "grupo": "—", "estadio": "Lincoln Financial Field", "ciudad": "Filadelfia", "pais": "EE.UU.", "flagL": "🇵🇾", "flagV": "🇫🇷", "kickoff": "2026-07-04T21:00:00Z", "busca": "paraguay vs. francia paraguay francia — octavos lincoln financial field filadelfia ee.uu. 4 jul sabado", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 91, "fase": "Octavos", "fecha": "5 jul", "dia": "Domingo", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Brasil vs. Noruega", "local": "Brasil", "visitante": "Noruega", "grupo": "—", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "🇧🇷", "flagV": "🇳🇴", "kickoff": "2026-07-05T20:00:00Z", "busca": "brasil vs. noruega brasil noruega — octavos metlife stadium east rutherford ee.uu. 5 jul domingo", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 92, "fase": "Octavos", "fecha": "5 jul", "dia": "Domingo", "horaCDMX": "18:00", "horaET": "20:00", "partido": "México vs. Inglaterra", "local": "México", "visitante": "Inglaterra", "grupo": "—", "estadio": "Estadio Ciudad de México (Azteca)", "ciudad": "Ciudad de México", "pais": "México", "flagL": "🇲🇽", "flagV": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "kickoff": "2026-07-06T00:00:00Z", "busca": "mexico vs. inglaterra mexico inglaterra — octavos estadio ciudad de mexico (azteca) ciudad de mexico mexico 5 jul domingo", "golesL": null, "golesV": null, "azteca": true, "esMexico": true}, {"n": 93, "fase": "Octavos", "fecha": "6 jul", "dia": "Lunes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Ganadores de dieciseisavos", "local": null, "visitante": null, "grupo": "—", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-06T19:00:00Z", "busca": "ganadores de dieciseisavos — octavos at&t stadium arlington ee.uu. 6 jul lunes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 94, "fase": "Octavos", "fecha": "6 jul", "dia": "Lunes", "horaCDMX": "18:00", "horaET": "20:00", "partido": "Ganadores de dieciseisavos", "local": null, "visitante": null, "grupo": "—", "estadio": "Lumen Field", "ciudad": "Seattle", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-07T00:00:00Z", "busca": "ganadores de dieciseisavos — octavos lumen field seattle ee.uu. 6 jul lunes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 95, "fase": "Octavos", "fecha": "7 jul", "dia": "Martes", "horaCDMX": "10:00", "horaET": "12:00", "partido": "Ganadores de dieciseisavos", "local": null, "visitante": null, "grupo": "—", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-07T16:00:00Z", "busca": "ganadores de dieciseisavos — octavos mercedes-benz stadium atlanta ee.uu. 7 jul martes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 96, "fase": "Octavos", "fecha": "7 jul", "dia": "Martes", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Ganadores de dieciseisavos", "local": null, "visitante": null, "grupo": "—", "estadio": "BC Place", "ciudad": "Vancouver", "pais": "Canadá", "flagL": "", "flagV": "", "kickoff": "2026-07-07T20:00:00Z", "busca": "ganadores de dieciseisavos — octavos bc place vancouver canada 7 jul martes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 97, "fase": "Cuartos de final", "fecha": "9 jul", "dia": "Jueves", "horaCDMX": "14:00", "horaET": "16:00", "partido": "Ganadores de octavos", "local": null, "visitante": null, "grupo": "—", "estadio": "Gillette Stadium", "ciudad": "Foxborough", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-09T20:00:00Z", "busca": "ganadores de octavos — cuartos de final gillette stadium foxborough ee.uu. 9 jul jueves", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 98, "fase": "Cuartos de final", "fecha": "10 jul", "dia": "Viernes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Ganadores de octavos", "local": null, "visitante": null, "grupo": "—", "estadio": "SoFi Stadium", "ciudad": "Inglewood", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-10T19:00:00Z", "busca": "ganadores de octavos — cuartos de final sofi stadium inglewood ee.uu. 10 jul viernes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 99, "fase": "Cuartos de final", "fecha": "11 jul", "dia": "Sábado", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Ganadores de octavos", "local": null, "visitante": null, "grupo": "—", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-11T21:00:00Z", "busca": "ganadores de octavos — cuartos de final hard rock stadium miami gardens ee.uu. 11 jul sabado", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 100, "fase": "Cuartos de final", "fecha": "11 jul", "dia": "Sábado", "horaCDMX": "19:00", "horaET": "21:00", "partido": "Ganadores de octavos", "local": null, "visitante": null, "grupo": "—", "estadio": "Arrowhead Stadium", "ciudad": "Kansas City", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-12T01:00:00Z", "busca": "ganadores de octavos — cuartos de final arrowhead stadium kansas city ee.uu. 11 jul sabado", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 101, "fase": "Semifinal", "fecha": "14 jul", "dia": "Martes", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Ganadores de cuartos", "local": null, "visitante": null, "grupo": "—", "estadio": "AT&T Stadium", "ciudad": "Arlington", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-14T19:00:00Z", "busca": "ganadores de cuartos — semifinal at&t stadium arlington ee.uu. 14 jul martes", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 102, "fase": "Semifinal", "fecha": "15 jul", "dia": "Miércoles", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Ganadores de cuartos", "local": null, "visitante": null, "grupo": "—", "estadio": "Mercedes-Benz Stadium", "ciudad": "Atlanta", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-15T19:00:00Z", "busca": "ganadores de cuartos — semifinal mercedes-benz stadium atlanta ee.uu. 15 jul miercoles", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 103, "fase": "Tercer lugar", "fecha": "18 jul", "dia": "Sábado", "horaCDMX": "15:00", "horaET": "17:00", "partido": "Perdedores de semifinales", "local": null, "visitante": null, "grupo": "—", "estadio": "Hard Rock Stadium", "ciudad": "Miami Gardens", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-18T21:00:00Z", "busca": "perdedores de semifinales — tercer lugar hard rock stadium miami gardens ee.uu. 18 jul sabado", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}, {"n": 104, "fase": "FINAL", "fecha": "19 jul", "dia": "Domingo", "horaCDMX": "13:00", "horaET": "15:00", "partido": "Ganadores de semifinales", "local": null, "visitante": null, "grupo": "—", "estadio": "MetLife Stadium", "ciudad": "East Rutherford", "pais": "EE.UU.", "flagL": "", "flagV": "", "kickoff": "2026-07-19T19:00:00Z", "busca": "ganadores de semifinales — final metlife stadium east rutherford ee.uu. 19 jul domingo", "golesL": null, "golesV": null, "azteca": false, "esMexico": false}];
+let FILTER = {az:false, mx:false, jug:false, prox:false};
+let cdTimers=[];
+const MABBR=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MLARGO=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const BALLCOLORS=['#16203a','#1e63d8','#0a8f47','#d99700','#e23b4e','#0aa3a3'];
+
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function norm(s){return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();}
+
+// balon SVG (varios colores) para partidos jugados
+function ballSVG(n,sz){
+  const c=BALLCOLORS[n%BALLCOLORS.length]; sz=sz||18;
+  return `<svg viewBox="0 0 32 32" width="${sz}" height="${sz}" aria-hidden="true">
+    <circle cx="16" cy="16" r="14.5" fill="#fff" stroke="${c}" stroke-width="1.6"/>
+    <polygon points="16,9 21,12.6 19.1,18.4 12.9,18.4 11,12.6" fill="${c}"/>
+    <g stroke="${c}" stroke-width="1.3" fill="none" stroke-linecap="round">
+      <path d="M16,2 L16,9"/><path d="M3,12 L11,12.6"/><path d="M29,12 L21,12.6"/>
+      <path d="M7.5,28 L12.9,18.4"/><path d="M24.5,28 L19.1,18.4"/>
+    </g></svg>`;
+}
+
+function clearTimers(){cdTimers.forEach(t=>clearInterval(t));cdTimers=[];}
+function setView(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  ['hoy','partidos','tri','pos'].forEach(x=>{
+    const el=document.getElementById(x+'View'); if(el) el.style.display = (x===v)?'block':'none';
+  });
+  if(v==='hoy') renderHoy();
+  if(v==='partidos') render();
+  if(v==='pos') renderStandings();
+  if(v==='tri') renderTri();
+}
+function tog(el){
+  const map={cAz:'az',cMx:'mx',cJug:'jug',cProx:'prox'};
+  const k=map[el.id]; FILTER[k]=!FILTER[k]; el.classList.toggle('on',FILTER[k]); render();
+}
+
+// fecha actual en CDMX (UTC-6)
+function cdmxNow(){return new Date(Date.now()-6*3600000);}
+function fechaKey(d){return d.getUTCDate()+' '+MABBR[d.getUTCMonth()];}
+
+// ---- STATS ----
+function buildStats(){
+  const jug = MATCHES.filter(m=>m.golesL!==null);
+  const goles = jug.reduce((a,m)=>a+m.golesL+m.golesV,0);
+  const prom = jug.length? (goles/jug.length).toFixed(2):'—';
+  const finalDate = new Date(2026,6,19);
+  const dias = Math.max(0, Math.ceil((finalDate-new Date())/86400000));
+  const mxNext = MATCHES.find(m=>m.esMexico && m.golesL===null);
+  const mxPlayed = MATCHES.filter(m=>m.esMexico && m.golesL!==null);
+  const st=[
+    ['green',jug.length+'/104','Partidos jugados'],
+    ['gold',goles,'Goles totales'],
+    ['teal',prom,'Goles / partido'],
+    ['blue',dias,'Días para la final'],
+    ['red',mxNext?('#'+mxNext.n):(mxPlayed.length?'✅':'—'),'Próx. de México'],
+  ];
+  document.getElementById('stats').innerHTML = st.map(s=>
+    `<div class="stat ${s[0]}"><div class="num">${s[1]}</div><div class="cap">${s[2]}</div></div>`).join('');
+
+  let html='';
+  if(mxNext){
+    const rival = mxNext.local==='México'?mxNext.visitante:mxNext.local;
+    const rf = mxNext.local==='México'?mxNext.flagV:mxNext.flagL;
+    html=`<span class="tag">🇲🇽 MÉXICO</span><span class="info">Próximo partido: <b>vs ${rf} ${esc(rival)}</b> · ${esc(mxNext.fecha)} ${esc(mxNext.horaCDMX)} CDMX · ${esc(mxNext.estadio)}${mxNext.azteca?' 🏟️':''}</span>`;
+  } else {
+    html=`<span class="tag">🇲🇽 MÉXICO</span><span class="info">Sigue toda la campaña del Tri en la pestaña <b>🇲🇽 El Tri</b>.</span>`;
+  }
+  if(mxPlayed.length){
+    const res = mxPlayed.map(m=>{
+      const gf=m.local==='México'?m.golesL:m.golesV, gc=m.local==='México'?m.golesV:m.golesL;
+      const r=gf>gc?'✅':gf<gc?'❌':'🟡'; return `${r} ${gf}-${gc}`;
+    }).join('  ');
+    html+=`<span class="info" style="margin-left:auto">📊 ${res}</span>`;
+  }
+  document.getElementById('mxbar').innerHTML=html;
+}
+
+// ---- FILTER OPTIONS ----
+function buildSelectors(){
+  const fases=[...new Set(MATCHES.map(m=>m.fase))];
+  document.getElementById('faseSel').innerHTML='<option value="">Todas las fases</option>'+fases.map(f=>`<option>${f}</option>`).join('');
+  const grupos=[...new Set(MATCHES.map(m=>m.grupo).filter(g=>g&&g!=='—'))].sort();
+  document.getElementById('grupoSel').innerHTML='<option value="">Todos los grupos</option>'+grupos.map(g=>`<option value="${g}">Grupo ${g}</option>`).join('');
+}
+
+// ---- RENDER MATCHES (mas recientes arriba) ----
+function render(){
+  const q=norm(document.getElementById('q').value);
+  const fase=document.getElementById('faseSel').value;
+  const grupo=document.getElementById('grupoSel').value;
+  let list=MATCHES.filter(m=>{
+    if(fase && m.fase!==fase) return false;
+    if(grupo && m.grupo!==grupo) return false;
+    if(FILTER.az && !m.azteca) return false;
+    if(FILTER.mx && !m.esMexico) return false;
+    if(FILTER.jug && m.golesL===null) return false;
+    if(FILTER.prox && m.golesL!==null) return false;
+    if(q && !(m.busca||'').includes(q)) return false;
+    return true;
+  });
+  const cont=document.getElementById('list');
+  if(!list.length){cont.innerHTML='<div class="empty">😕 No hay partidos con esos filtros.</div>';return;}
+  let html='';
+  const byDay={}; const order=[];
+  list.forEach(m=>{const k=m.fecha+'|'+m.dia+'|'+m.fase;if(!(k in byDay)){byDay[k]=[];order.push(k);}byDay[k].push(m);});
+  order.reverse();
+  order.forEach(k=>{
+    const [fecha,dia,fase]=k.split('|'); const arr=byDay[k].slice().reverse();
+    html+=`<div class="day"><span class="dot"></span><h3>${esc(dia)} ${esc(fecha)}</h3><span class="ph">${esc(fase)}</span><span class="ln"></span></div><div class="grid">`;
+    arr.forEach(m=>html+=cardHTML(m));
+    html+=`</div>`;
+  });
+  cont.innerHTML=html;
+}
+
+function cardHTML(m){
+  const played=m.golesL!==null;
+  const cls=['match']; if(played)cls.push('played'); if(m.esMexico)cls.push('mx'); if(m.azteca)cls.push('az');
+  let center;
+  if(played){
+    const lw=m.golesL>m.golesV, vw=m.golesV>m.golesL;
+    center=`<div class="score"><span class="v ${lw?'w':(vw?'l':'')}">${m.golesL}</span><span class="dash">–</span><span class="v ${vw?'w':(lw?'l':'')}">${m.golesV}</span></div>`;
+  } else {
+    center=`<div class="vs">${esc(m.horaCDMX||'')}</div>`;
+  }
+  const lWin=played&&m.golesL>m.golesV, vWin=played&&m.golesV>m.golesL;
+  const nameL = m.local||m.partido||'Por definir';
+  const nameV = m.visitante||'';
+  const teamV = nameV?`<div class="team v ${vWin?'win':''}"><span class="fl">${m.flagV}</span><span class="nm">${esc(nameV)}</span></div>`
+                     :`<div class="team v"></div>`;
+  let badges='';
+  if(played) badges+=`<span class="badge b-live">⚽ Jugado</span>`;
+  else badges+=`<span class="badge b-prog">${esc(m.horaCDMX||'')} CDMX</span>`;
+  if(m.grupo&&m.grupo!=='—') badges+=`<span class="badge b-grp">Grupo ${esc(m.grupo)}</span>`;
+  if(m.azteca) badges+=`<span class="badge b-az">🏟️ Azteca</span>`;
+  if(m.esMexico) badges+=`<span class="badge b-mx">🇲🇽 México</span>`;
+  const ball = played?`<span class="ballmark">${ballSVG(m.n,20)}</span>`:'';
+  return `<div class="${cls.join(' ')}">
+    ${ball}
+    <div class="mrow">
+      <div class="team ${lWin?'win':''}"><span class="fl">${m.flagL}</span><span class="nm">${esc(nameL)}</span></div>
+      ${center}
+      ${teamV}
+    </div>
+    <div class="meta">${badges}<span class="est">📍 ${esc(m.estadio||'')}, ${esc(m.ciudad||'')}</span></div>
+  </div>`;
+}
+
+// ---- HOY ----
+function renderHoy(){
+  clearTimers();
+  const now=cdmxNow();
+  const key=fechaKey(now);
+  const fechaLarga=`${DIAS[now.getUTCDay()]} ${now.getUTCDate()} de ${MLARGO[now.getUTCMonth()]} de ${now.getUTCFullYear()}`;
+
+  // proximo partido del torneo (cualquiera) para el countdown
+  const future=MATCHES.filter(m=>m.kickoff && new Date(m.kickoff).getTime()>Date.now())
+                      .sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff));
+  const nx=future[0];
+  let cntHTML='';
+  if(nx){
+    cntHTML=`<div class="cnt">
+      <div class="clbl">⏱️ Próximo partido del Mundial</div>
+      <div class="rv">${nx.flagL} ${esc(nx.local)} vs ${esc(nx.visitante)} ${nx.flagV}</div>
+      <div class="cd" id="cdGlobal"><div class="u"><b>--</b><span>días</span></div><div class="u"><b>--</b><span>hrs</span></div><div class="u"><b>--</b><span>min</span></div><div class="u"><b>--</b><span>seg</span></div></div>
+    </div>`;
+  }
+
+  let hoy=MATCHES.filter(m=>norm(m.fecha)===norm(key));
+  let secTitle='⚽ Partidos de hoy', body='';
+  if(hoy.length){
+    body=`<div class="grid">${hoy.map(cardHTML).join('')}</div>`;
+  } else if(future.length){
+    const fk=future[0].fecha;
+    const prox=MATCHES.filter(m=>m.fecha===fk);
+    secTitle=`🗓️ No hay partidos hoy · Próxima jornada: ${esc(future[0].dia)} ${esc(fk)}`;
+    body=`<div class="grid">${prox.map(cardHTML).join('')}</div>`;
+  } else {
+    body=`<div class="empty">🏆 El Mundial ha terminado. ¡Gracias por seguirlo!</div>`;
+  }
+
+  document.getElementById('hoyView').innerHTML=`
+    <div class="hoy-hero">
+      <div class="hl"><div class="lbl">Hoy es</div><div class="date">${fechaLarga}</div></div>
+      ${cntHTML}
+    </div>
+    <div class="hoy-sec">${secTitle}<span class="ln"></span></div>
+    ${body}`;
+
+  if(nx){ startCountdown(new Date(nx.kickoff).getTime(),'cdGlobal'); }
+}
+
+function startCountdown(target,elId){
+  const tick=()=>{
+    const el=document.getElementById(elId); if(!el)return;
+    let d=target-Date.now();
+    if(d<=0){el.innerHTML='<div class="u" style="min-width:auto"><b style="font-size:17px">🔴 EN JUEGO</b></div>';return;}
+    const dd=Math.floor(d/86400000); d-=dd*86400000;
+    const hh=Math.floor(d/3600000); d-=hh*3600000;
+    const mm=Math.floor(d/60000); d-=mm*60000;
+    const ss=Math.floor(d/1000);
+    const pad=n=>String(n).padStart(2,'0');
+    el.innerHTML=`<div class="u"><b>${dd}</b><span>días</span></div><div class="u"><b>${pad(hh)}</b><span>hrs</span></div><div class="u"><b>${pad(mm)}</b><span>min</span></div><div class="u"><b>${pad(ss)}</b><span>seg</span></div>`;
+  };
+  tick(); cdTimers.push(setInterval(tick,1000));
+}
+
+// ---- EL TRI ----
+function mxView(m){
+  const casa = m.local==='México';
+  return {rival:casa?m.visitante:m.local, flag:casa?m.flagV:m.flagL,
+    gf:m.golesL===null?null:(casa?m.golesL:m.golesV),
+    gc:m.golesL===null?null:(casa?m.golesV:m.golesL), casa};
+}
+function mxStatus(){ // posicion y clasificacion en el grupo
+  const mxg=MATCHES.find(m=>m.esMexico && m.grupo && m.grupo!=='—');
+  if(!mxg) return null;
+  const rows=computeStandings(mxg.grupo);
+  const idx=rows.findIndex(r=>r.t==='México');
+  const pj=rows.reduce((a,r)=>a+r.pj,0)/2; // partidos del grupo jugados (aprox)
+  return {grupo:mxg.grupo, pos:idx+1, row:rows[idx], total:rows.length};
+}
+function renderTri(){
+  clearTimers();
+  const mxAll = MATCHES.filter(m=>m.esMexico).slice().sort((a,b)=>a.n-b.n);
+  const played = mxAll.filter(m=>m.golesL!==null);
+  const next = mxAll.find(m=>m.golesL===null);
+
+  let g=0,e=0,p=0,gf=0,gc=0;
+  played.forEach(m=>{const v=mxView(m);gf+=v.gf;gc+=v.gc;
+    if(v.gf>v.gc)g++;else if(v.gf<v.gc)p++;else e++;});
+
+  const subline = played.length
+    ? `${g} ganados · ${e} empates · ${p} perdidos · ${gf} goles a favor, ${gc} en contra`
+    : `El Tri arranca su camino en casa. ¡Vamos México! 🇲🇽`;
+
+  // estatus de clasificacion
+  const st=mxStatus();
+  let statusPill='🇲🇽 Selección anfitriona';
+  if(st && st.row){
+    const ord=['1º','2º','3º','4º'][st.pos-1]||st.pos+'º';
+    const clasif = st.pos<=2 ? '✅ Clasificado a dieciseisavos' : (st.pos===3?'⏳ Pelea por mejor 3er lugar':'En competencia');
+    statusPill=`🏆 ${ord} del Grupo ${st.grupo} · ${st.row.pts} pts · ${clasif}`;
+  }
+
+  let countHTML;
+  if(next){
+    const v=mxView(next);
+    countHTML=`<div class="tri-count">
+      <div class="clbl">⏱️ Próximo partido</div>
+      <div class="rival">${v.flag} ${esc(v.rival)}</div>
+      <div class="cd" id="cdTri"><div class="u"><b>--</b><span>días</span></div><div class="u"><b>--</b><span>hrs</span></div><div class="u"><b>--</b><span>min</span></div><div class="u"><b>--</b><span>seg</span></div></div>
+      <div class="place">${esc(next.fecha)} · ${esc(next.horaCDMX)} CDMX</div>
+    </div>`;
+  } else {
+    countHTML=`<div class="tri-count"><div class="clbl">Fase de grupos completada</div><div class="rival">Rumbo a la fase final 🏆</div><div class="place">Los rivales se definen al cerrar los grupos</div></div>`;
+  }
+
+  const rec=`<div class="tri-record">
+    <div class="rc"><b>${played.length}</b><span>Jugados</span></div>
+    <div class="rc w"><b>${g}</b><span>Ganados</span></div>
+    <div class="rc d"><b>${e}</b><span>Empates</span></div>
+    <div class="rc l"><b>${p}</b><span>Perdidos</span></div>
+    <div class="rc"><b>${gf}</b><span>Goles a favor</span></div>
+    <div class="rc"><b>${gc}</b><span>Goles en contra</span></div>
+  </div>`;
+
+  const playedDesc = played.slice().reverse();
+  const upcoming = mxAll.filter(m=>m.golesL===null);
+  let tl='';
+  playedDesc.forEach(m=>{
+    const v=mxView(m); const cl=v.gf>v.gc?'win':v.gf<v.gc?'loss':'draw';
+    const lbl=cl==='win'?'VICTORIA':cl==='loss'?'DERROTA':'EMPATE';
+    tl+=`<div class="tev ${cl}">
+      <div class="top">
+        <span class="mt">🇲🇽 México ${v.casa?'vs':'@'} ${v.flag} ${esc(v.rival)}</span>
+        <span><span class="sc ${cl}">${v.gf}–${v.gc}</span> &nbsp;<span class="res ${cl}">${lbl}</span></span>
+      </div>
+      <div class="sub"><span>📅 ${esc(m.fecha)}</span><span>📍 ${esc(m.estadio)}, ${esc(m.ciudad)}${m.azteca?' 🏟️ Azteca':''}</span><span>${ballSVG(m.n,14)} #${m.n} · ${esc(m.fase)}</span></div>
+    </div>`;
+  });
+  upcoming.forEach((m,i)=>{
+    const v=mxView(m); const isNext=(i===0);
+    tl+=`<div class="tev ${isNext?'next':''}">
+      <div class="top">
+        <span class="mt">🇲🇽 México ${v.casa?'vs':'@'} ${v.flag} ${esc(v.rival)}</span>
+        <span class="res next">${isNext?'PRÓXIMO':'POR JUGAR'}</span>
+      </div>
+      <div class="sub"><span>📅 ${esc(m.fecha)} ${esc(m.horaCDMX)} CDMX</span><span>📍 ${esc(m.estadio)}, ${esc(m.ciudad)}${m.azteca?' 🏟️ Azteca':''}</span><span>#${m.n} · ${esc(m.fase)}</span></div>
+    </div>`;
+  });
+
+  document.getElementById('triView').innerHTML=`
+    <div class="tri-hero">
+      <div class="tri-crest">🇲🇽</div>
+      <div class="tri-head">
+        <h2>EL TRI EN EL MUNDIAL</h2>
+        <div class="tri-status">${statusPill}</div>
+        <div class="tri-sub">${subline}</div>
+        <button class="celebra" onclick="launchConfetti()">🎉 ¡Celebrar!</button>
+      </div>
+      ${countHTML}
+    </div>
+    ${rec}
+    <div class="tri-tl-h">📖 Camino de México <span class="ln"></span></div>
+    <div class="tline">${tl||'<div class="empty">Aún sin partidos.</div>'}</div>`;
+
+  if(next && next.kickoff){ startCountdown(new Date(next.kickoff).getTime(),'cdTri'); }
+
+  if(mxWonLast()){ launchConfetti(); }
+}
+
+function mxWonLast(){
+  const played=MATCHES.filter(m=>m.esMexico && m.golesL!==null).sort((a,b)=>a.n-b.n);
+  if(!played.length) return false;
+  const v=mxView(played[played.length-1]);
+  return v.gf>v.gc;
+}
+
+// ---- CONFETTI ----
+function launchConfetti(){
+  const cont=document.getElementById('confetti');
+  const colors=['#0a8f47','#f5b400','#e23b4e','#1e63d8','#ffffff','#0aa3a3'];
+  for(let i=0;i<150;i++){
+    const p=document.createElement('div');p.className='cfp';
+    p.style.left=Math.random()*100+'vw';
+    p.style.background=colors[i%colors.length];
+    p.style.animationDuration=(2.6+Math.random()*2.4)+'s';
+    p.style.animationDelay=(Math.random()*0.7)+'s';
+    p.style.transform='rotate('+(Math.random()*360)+'deg)';
+    if(Math.random()>.5)p.style.borderRadius='50%';
+    cont.appendChild(p);
+    setTimeout(()=>p.remove(),5600);
+  }
+}
+
+// ---- STANDINGS ----
+function computeStandings(g){
+  const ms=MATCHES.filter(m=>m.grupo===g && m.fase==='Fase de grupos');
+  const T={};
+  const add=t=>{if(t&&!T[t])T[t]={t,pj:0,g:0,e:0,p:0,gf:0,gc:0,pts:0,flag:''};};
+  ms.forEach(m=>{add(m.local);add(m.visitante);
+    if(T[m.local])T[m.local].flag=m.flagL; if(T[m.visitante])T[m.visitante].flag=m.flagV;});
+  ms.forEach(m=>{
+    if(m.golesL===null)return;
+    const a=T[m.local],b=T[m.visitante];
+    a.pj++;b.pj++;a.gf+=m.golesL;a.gc+=m.golesV;b.gf+=m.golesV;b.gc+=m.golesL;
+    if(m.golesL>m.golesV){a.g++;b.p++;a.pts+=3;}
+    else if(m.golesL<m.golesV){b.g++;a.p++;b.pts+=3;}
+    else{a.e++;b.e++;a.pts++;b.pts++;}
+  });
+  return Object.values(T).sort((x,y)=>y.pts-x.pts||(y.gf-y.gc)-(x.gf-x.gc)||y.gf-x.gf||x.t.localeCompare(y.t));
+}
+function renderStandings(){
+  const grupos=[...new Set(MATCHES.map(m=>m.grupo).filter(g=>g&&g!=='—'))].sort();
+  let html='';
+  grupos.forEach(g=>{
+    const rows=computeStandings(g);
+    html+=`<div class="gcard"><h4><span class="gp">${g}</span> Grupo ${g}</h4>
+      <table><thead><tr><th></th><th class="l">Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>Pts</th></tr></thead><tbody>`;
+    rows.forEach((r,i)=>{
+      const dg=r.gf-r.gc; const isMx=r.t==='México';
+      html+=`<tr class="${i<2?'q':''} ${isMx?'mx':''}">
+        <td class="pos">${i+1}</td>
+        <td class="l"><div class="tm"><span class="fl">${r.flag}</span>${esc(r.t)}</div></td>
+        <td>${r.pj}</td><td>${r.g}</td><td>${r.e}</td><td>${r.p}</td>
+        <td>${dg>0?'+':''}${dg}</td><td class="pts">${r.pts}</td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  });
+  document.getElementById('grps').innerHTML=html;
+}
+
+// init
+buildStats(); buildSelectors();
+setView('hoy');
+// sorpresa: si Mexico gano su ultimo partido, confeti al cargar
+setTimeout(()=>{ if(mxWonLast()) launchConfetti(); }, 650);
+// auto-refresh del archivo cada 10 min
+setTimeout(()=>location.reload(), 600000);
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));}
+</script>
+</body>
+</html>
