@@ -1,0 +1,18 @@
+{
+  "id": "liga-mx-ap2026",
+  "name": "Liga MX · Apertura 2026",
+  "short_name": "Liga MX",
+  "description": "Tabla, resultados, quiniela grupal y liguilla de la Liga MX en vivo.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#04090f",
+  "theme_color": "#04090f",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
